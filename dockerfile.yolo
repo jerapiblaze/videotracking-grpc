@@ -1,0 +1,23 @@
+FROM debian:latest as base
+
+RUN apt update -y
+RUN apt upgrade -y
+RUN apt install python3-pip -y
+
+WORKDIR /tmp/build
+COPY ./requirements.txt ./requirements.txt
+
+RUN pip install ultralytics grpcio-tools grpcio opencv-python opencv-python-headless scipy pandas numpy networkx lapx PyYAML --break-system-packages
+
+RUN rm -rf /tmp/build
+
+RUN apt-get install ffmpeg libsm6 libxext6 -y
+
+FROM base
+
+WORKDIR /opt/videotracking-grpc
+COPY . .
+
+EXPOSE 50051/tcp
+
+CMD python3 YoloServer.py

@@ -1,0 +1,73 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-simpleapp
+  labels:
+    app: web-simpleapp
+  namespace: j12t-beta
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: web-simpleapp
+  - port: 9126
+    targetPort: 9126
+    name: telegraf
+  type: NodePort
+  selector:
+    app: web-simpleapp
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: web-simpleapp
+  namespace: j12t-beta
+spec:
+  selector:
+    matchLabels:
+      app: web-simpleapp
+  serviceName: web-simpleapp
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: web-simpleapp
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: web-simpleapp-server
+        image: jerapiblannett/videotracking-grpc-webserver:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            ephemeral-storage: "1G"
+          limits:
+            ephemeral-storage: "1G"
+        volumeMounts:
+        - name: ephemeral
+          mountPath: "/tmp"
+      - name: telegraf-agent
+        image: telegraf:1.20
+        ports:
+        - containerPort: 9126
+        resources:
+          requests:
+            ephemeral-storage: "50M"
+          limits:
+            ephemeral-storage: "100M"
+        volumeMounts:
+        - name: ephemeral
+          mountPath: "/tmp"
+        - name: telegraf-config
+          mountPath: "/etc/telegraf"
+      volumes:
+      - name: ephemeral
+        emptyDir:
+          sizeLimit: "2G"
+      - name: telegraf-config
+        configMap:
+          name: telegraf-config
+          defaultMode: 420

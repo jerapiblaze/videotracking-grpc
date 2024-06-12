@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: telegraf-config
+  namespace: j12t-beta
+data:
+  telegraf.conf: |
+    [agent]
+    interval = "10s"
+    round_interval = true
+    metric_batch_size = 1000
+    metric_buffer_limit = 10000
+    collection_jitter = "0s"
+    flush_interval = "10s"
+    flush_jitter = "0s"
+    precision = ""
+    hostname = ""
+    omit_hostname = true
+    logtarget = "file"
+    logfile = "/tmp/telegraf.log"
+    [[outputs.prometheus_client]]
+    listen = ":9126"
+    path = "/metrics"
+    [[outputs.file]]
+    files = ["/tmp/telegraf_stats.txt"]
+    data_format = "wavefront"
+    rotation_max_size = "5MB"
+    [[inputs.mem]]
+    [[inputs.cpu]]
+    [[inputs.net]]
+    [[inputs.diskio]]

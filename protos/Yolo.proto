@@ -1,0 +1,13 @@
+syntax="proto2";
+
+package Yolo;
+
+service Yolo {
+    rpc Detect(Image) returns (Image);
+    rpc Track(Image) returns (Image);
+}
+
+message Image {
+    required bytes data = 1;
+    optional bytes metadata = 2;
+}
